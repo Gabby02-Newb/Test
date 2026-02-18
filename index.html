@@ -1,100 +1,78 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sample GitHub Website</title>
-
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: Arial, Helvetica, sans-serif;
-    }
-
-    body {
-      background: #f4f6f8;
-      color: #333;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
-
-    .container {
-      background: #ffffff;
-      width: 90%;
-      max-width: 500px;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-      text-align: center;
-    }
-
-    h1 {
-      margin-bottom: 10px;
-    }
-
-    p {
-      margin-bottom: 20px;
-      line-height: 1.6;
-    }
-
-    button {
-      padding: 10px 20px;
-      border: none;
-      background: #007bff;
-      color: white;
-      font-size: 16px;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    button:hover {
-      background: #0056b3;
-    }
-
-    .message {
-      margin-top: 20px;
-      font-weight: bold;
-      color: #28a745;
-      display: none;
-    }
-
-    footer {
-      margin-top: 30px;
-      font-size: 14px;
-      color: #777;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Simple Notification Test</title>
 </head>
+<body style="font-family: Arial; padding: 30px;">
 
-<body>
-  <div class="container">
-    <h1>Sample Website</h1>
-    <p>
-      This is a simple example website created to demonstrate basic
-      HTML, CSS, and JavaScript usage for a GitHub repository.
-    </p>
+<h2>Notification Time Test</h2>
 
-    <button onclick="showMessage()">Click Me</button>
+<label>Enter Time (24-hour format):</label>
+<input type="time" id="notifyTime">
+<button onclick="startCheck()">Start</button>
 
-    <div class="message" id="message">
-      JavaScript is working!
-    </div>
+<p id="status"></p>
 
-    <footer>
-      © 2026 · Example Project
-    </footer>
-  </div>
+<script>
+let checkInterval = null;
+let targetTime = null;
 
-  <script>
-    function showMessage() {
-      const message = document.getElementById("message");
-      message.style.display = "block";
+async function requestPermission() {
+    if (!("Notification" in window)) {
+        alert("Notifications not supported in this browser.");
+        return false;
     }
-  </script>
+
+    if (Notification.permission === "granted") return true;
+
+    if (Notification.permission !== "denied") {
+        const permission = await Notification.requestPermission();
+        return permission === "granted";
+    }
+
+    return false;
+}
+
+async function startCheck() {
+    const ok = await requestPermission();
+    if (!ok) {
+        alert("Notification permission denied.");
+        return;
+    }
+
+    targetTime = document.getElementById("notifyTime").value;
+    if (!targetTime) {
+        alert("Please enter a time.");
+        return;
+    }
+
+    document.getElementById("status").innerText =
+        "Waiting for " + targetTime;
+
+    if (checkInterval) clearInterval(checkInterval);
+
+    checkInterval = setInterval(checkTime, 1000);
+}
+
+function checkTime() {
+    const now = new Date();
+    const current =
+        now.getHours().toString().padStart(2, "0") + ":" +
+        now.getMinutes().toString().padStart(2, "0");
+
+    if (current === targetTime) {
+        new Notification("⏰ Time Reached!", {
+            body: "It is now " + targetTime
+        });
+
+        document.getElementById("status").innerText =
+            "Notification sent at " + current;
+
+        clearInterval(checkInterval);
+    }
+}
+</script>
+
 </body>
 </html>
